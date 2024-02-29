@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Card from "../Card/Card";
+import convertToNum from "../../utils/convertValues"
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
@@ -11,6 +12,9 @@ const BlackjackGame: React.FC = () => {
   const [dealerScore, setDealerScore] = useState(0);
   const [playerScore, setPlayerScore] = useState(0);
   const [result, setResult] = useState('');
+  const [dealerFirstCardSrc, setDealerFirstCardSrc] = useState("https://opengameart.org/sites/default/files/card%20back%20red.png");
+  const [dealerSecondCardSum, setDealerSecondCardSum] = useState(0);
+  const [dealerCardsSum, setDealerCardsSum] = useState(0);
 
 
 
@@ -43,16 +47,18 @@ const BlackjackGame: React.FC = () => {
     const playerCardOne = await getCard();
     const playerCardTwo = await getCard();
   
+     // Set dealer's first card to back of card image
+     setDealerFirstCardSrc("https://opengameart.org/sites/default/files/card%20back%20red.png");
 
     setAddDealersCards(prevCards => [...prevCards, dealerCardOne, dealerCardTwo]);
     setAddPlayersCards(prevCards => [...prevCards, playerCardOne, playerCardTwo]);
 
 
-
-  
     // Calculate and set dealer score (show only second card)
     const dealerSecondCardValue = convertToNum(dealerCardTwo.value);
     setDealerScore(dealerSecondCardValue);
+
+
   
     // Calculate and set player score
     const playerCardsSum = sumCards([playerCardOne, playerCardTwo]);
@@ -64,24 +70,34 @@ const BlackjackGame: React.FC = () => {
     }
   };
 
-  //To convert the cards with string Values
-function convertToNum(val: string) {
-  if (val === "ACE") {
-    return 11;
-  } 
-  else if (val === "KING" || val === "QUEEN" || val === "JACK") {
-    return 10;
-  } 
-  else {
-    return Number(val);
-  }
-}
+
+
+
+  const flipDealersCard = () => {
+    if (addDealersCards && addDealersCards.length > 0) {
+      const firstCardImage = addDealersCards[0].image;
+      console.log("First card image:", firstCardImage);
+  
+      setDealerFirstCardSrc(firstCardImage);
+    
+      // Calculate and set sum of dealer's cards
+      const dealerCardsSum = sumCards(addDealersCards);
+      setDealerScore(dealerCardsSum);
+    }
+  };
+  
+            
+
+
 
   
   console.log(addDealersCards, 'dealers')
   console.log(addPlayersCards, 'players')
   console.log(dealerScore, 'DEALER SCORE')
   console.log(playerScore, 'PLAYER SCORE')
+
+
+
 
 
   const hit = async () => {
@@ -92,10 +108,12 @@ function convertToNum(val: string) {
     const playerCardsSum = sumCards([...addPlayersCards, newPlayerCard]);
     setPlayerScore(playerCardsSum);
 
+    flipDealersCard()
+  
     // Check for Bust
     if (playerCardsSum >= 21) {
       // flipDealersFirstCard();
-      checkForWinner(); 
+      // checkForWinner();
     }
   };
 
@@ -163,17 +181,38 @@ function convertToNum(val: string) {
 //   }
 // }
 
+            // Update dealer's first card image and score
+            // useEffect(() => {
+            //   flipDealersCard();
+            // }, [addDealersCards]);
+  
+
   return (
     <div className="blackjack-game">
       {/* Render cards */}
       <div className="dealer-cards">
-        {addDealersCards.map((card, index) => (
-          <Card key={index} image={card.image} value={card.value} />
-        ))}
+      {
+    addDealersCards.map((card, index) => (
+      <Card
+        key={index}
+        image={index === 0 ? dealerFirstCardSrc : card.image}
+        value={card.value}
+        isDealer={true}
+        isFirst={index === 0}
+        dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+
+      />
+    ))}
       </div>
       <div className="player-cards">
         {addPlayersCards.map((card, index) => (
-          <Card key={index} image={card.image} value={card.value} />
+          <Card
+            key={index}
+            image={card.image}
+            value={card.value}
+            isDealer={false}
+            isFirst={index === 0}
+          />
         ))}
       </div>
 
