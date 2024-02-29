@@ -1,11 +1,12 @@
 
 import './App.css'
+import BlackjackGame from './components/Game/Game'
 
 function App() {
 
   return (
     <>
-      <h1>HELLO</h1>
+      <BlackjackGame />
     </>
   )
 }
