@@ -42,10 +42,11 @@ const BlackjackGame: React.FC = () => {
   };
 
   const dealCards = async () => {
-    const dealerCardOne = await getCard();
-    const dealerCardTwo = await getCard();
     const playerCardOne = await getCard();
+    const dealerCardOne = await getCard();
     const playerCardTwo = await getCard();
+    const dealerCardTwo = await getCard();
+    
   
      // Set dealer's first card to back of card image
      setDealerFirstCardSrc("https://opengameart.org/sites/default/files/card%20back%20red.png");
@@ -67,6 +68,8 @@ const BlackjackGame: React.FC = () => {
     // Check for Blackjack
     if (playerCardsSum === 21) {
       setResult("BLACKJACK PLAYER WINS");
+      flipDealersCard()
+
     }
   };
 
@@ -84,6 +87,11 @@ const BlackjackGame: React.FC = () => {
       const dealerCardsSum = sumCards(addDealersCards);
       setDealerScore(dealerCardsSum);
     }
+            // Check for Blackjack
+            if (dealerCardsSum === 21) {
+              setResult("BLACKJACK DEALER WINS");
+            }
+
   };
   
             
@@ -108,20 +116,49 @@ const BlackjackGame: React.FC = () => {
     const playerCardsSum = sumCards([...addPlayersCards, newPlayerCard]);
     setPlayerScore(playerCardsSum);
 
-    flipDealersCard()
+    
   
     // Check for Bust
     if (playerCardsSum >= 21) {
-      // flipDealersFirstCard();
-      // checkForWinner();
+      checkForWinner();
+      flipDealersCard()
     }
   };
 
-  const stand = async () => { 
-    // Logic for dealer's turn
-    // Calculate and set dealer score
+  const stand = async () => {
+    // Flip the dealer's first card
+    flipDealersCard();
+  
+    // Draw a new card for the dealer
+    const newDealerCard = await getCard();
+    setAddDealersCards(prevCards => [...prevCards, newDealerCard]);
+  
+    // Calculate the sum of all dealer's cards including the newly drawn card
+    const updatedDealerCards = [...addDealersCards, newDealerCard];
+    const dealerCardsSum = sumCards(updatedDealerCards);
+  
+    // Update the dealer's score
+    setDealerScore(dealerCardsSum);
+  
+    console.log(dealerCardsSum, "dealers score in stand");
+  
     // Check for winner
+    if (dealerCardsSum < 17) {
+      stand(); // Draw another card if the dealer's score is less than 17
+    } else {
+      checkForWinner(); // Check for winner if the dealer's score is 17 or higher
+    }
   };
+  
+
+  
+  
+  
+  
+
+  
+  
+  
 
   // SUM CARDS
   //We sort the cards in descending order (b - a). This is important because we want to check for the ace value before any other card value.
@@ -143,6 +180,10 @@ const BlackjackGame: React.FC = () => {
     if (hasAce && sum > 21) {
       sum -= 10;
     }
+
+    // if (hasAce && sum === 21) {
+    //   return sum;
+    // }
   
     return sum;
   }
@@ -150,42 +191,51 @@ const BlackjackGame: React.FC = () => {
   
   
   
+
+
+  function checkForWinner() {
+
+      // Calculate player score
+  const playerScore = sumCards(addPlayersCards);
   
+  // Calculate dealer score
+  const dealerScore = sumCards(addDealersCards);
+  console.log(playerScore, 'final players score')
+  console.log(dealerScore, 'final dealers score')
 
+    if (playerScore > dealerScore && playerScore <= 21) {
+      setResult("PLAYER WINS");
+      console.log(result, 'result');
 
-// function checkForWinner() {
-//   if (sumPlayersCards > sumDealersCards && sumPlayersCards < 21) {
-//     result.classList.toggle("hide");
-//     result.innerText = "PLAYER WINS";
-//   } else if (sumDealersCards > 21 && sumPlayersCards <= 20) {
-//     result.classList.toggle("hide");
-//     result.innerText = "PLAYER WINS";
-//   } else if (sumPlayersCards === 21 && sumDealersCards <= 20) {
-//     result.classList.toggle("hide");
-//     result.innerText = "BLACKJACK PLAYER WINS";
-//   } else if (sumDealersCards > sumPlayersCards && sumDealersCards < 21) {
-//     result.classList.toggle("hide");
-//     result.innerText = "DEALER WINS";
-//   } else if (sumPlayersCards > 21 && sumDealersCards <= 20) {
-//     result.classList.toggle("hide");
-//     result.innerText = "BUST! DEALER WINS";
-//   } else if (
-//     (sumDealersCards === 21 && sumPlayersCards <= 20) ||
-//     sumPlayersCards > 21
-//   ) {
-//     result.classList.toggle("hide");
-//     result.innerText = "BLACKJACK DEALER WINS";
-//   } else {
-//     result.classList.toggle("hide");
-//     result.innerText = "DRAW";
-//   }
-// }
-
-            // Update dealer's first card image and score
-            // useEffect(() => {
-            //   flipDealersCard();
-            // }, [addDealersCards]);
+    } else if (dealerScore > 21 && playerScore <= 21) {
+      setResult("PLAYER WINS");
+      console.log(result, 'result');
+    } else if (playerScore === 21 && dealerScore < 21) {
+      setResult("BLACKJACK PLAYER WINS");
+      console.log(result, 'result');
+    } else if (dealerScore > playerScore && dealerScore <= 21) {
+      setResult("DEALER WINS");
+      console.log(result, 'result');
+    } else if (playerScore > 21 && dealerScore <= 21) {
+      setResult("BUST! DEALER WINS");
+      console.log(result, 'result');
+    } else if (dealerScore === 21 && playerScore < 21) {
+      setResult("BLACKJACK DEALER WINS");
+      console.log(result, 'result');
+    } else {
+      setResult("DRAW");
+      console.log(result, 'result');
+    }
+  }
   
+  
+  useEffect(() => {
+    // Call the checkForWinner function when the player's cards state changes
+    checkForWinner();
+  }, [addPlayersCards, addDealersCards]); // Watch for changes in the player's cards state
+
+
+
 
   return (
     <div className="blackjack-game">
