@@ -6,6 +6,7 @@ function App() {
 
   return (
     <>
+      <h2>BLACKJACK</h2>
       <BlackjackGame />
     </>
   )

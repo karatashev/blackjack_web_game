@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import Card from "../Card/Card";
 import convertToNum from "../../utils/convertValues"
+import styles from "./Game.module.css"
+import ResultModal from "../Modal/ResultModal";
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
   const [deckId, setDeckId] = useState('');
   const [addPlayersCards, setAddPlayersCards] = useState([]);
   const [addDealersCards, setAddDealersCards] = useState([]);
-  const [sumPlayersCards, setSumPlayersCards] = useState(0);
-  const [sumDealersCards, setSumDealersCards] = useState(0);
-  const [dealerScore, setDealerScore] = useState(0);
-  const [playerScore, setPlayerScore] = useState(0);
+  const [dealerScore, setDealerScore] = useState(null);
+  const [playerScore, setPlayerScore] = useState(null);
   const [result, setResult] = useState('');
   const [dealerFirstCardSrc, setDealerFirstCardSrc] = useState("https://opengameart.org/sites/default/files/card%20back%20red.png");
-  const [dealerSecondCardSum, setDealerSecondCardSum] = useState(0);
   const [dealerCardsSum, setDealerCardsSum] = useState(0);
+  const [gameEnded, setGameEnded] = useState(false);
+
 
 
 
@@ -190,11 +191,17 @@ const BlackjackGame: React.FC = () => {
   
   
   
-  
+  useEffect(() => {
+    // Call the checkForWinner function when the player's cards state changes
+    if (gameEnded) {
+      checkForWinner();
+      console.log(gameEnded, 'game ended')
+    }
+  }, [addPlayersCards, addDealersCards, gameEnded]); // Watch for changes in the player's cards state
+
 
 
   function checkForWinner() {
-
       // Calculate player score
   const playerScore = sumCards(addPlayersCards);
   
@@ -203,43 +210,62 @@ const BlackjackGame: React.FC = () => {
   console.log(playerScore, 'final players score')
   console.log(dealerScore, 'final dealers score')
 
+
     if (playerScore > dealerScore && playerScore <= 21) {
       setResult("PLAYER WINS");
-      console.log(result, 'result');
+      setGameEnded(true)
 
     } else if (dealerScore > 21 && playerScore <= 21) {
       setResult("PLAYER WINS");
+      setGameEnded(true)
       console.log(result, 'result');
     } else if (playerScore === 21 && dealerScore < 21) {
       setResult("BLACKJACK PLAYER WINS");
+      setGameEnded(true)
       console.log(result, 'result');
     } else if (dealerScore > playerScore && dealerScore <= 21) {
       setResult("DEALER WINS");
+      setGameEnded(true)
       console.log(result, 'result');
     } else if (playerScore > 21 && dealerScore <= 21) {
       setResult("BUST! DEALER WINS");
+      setGameEnded(true)
       console.log(result, 'result');
     } else if (dealerScore === 21 && playerScore < 21) {
       setResult("BLACKJACK DEALER WINS");
+      setGameEnded(true)
       console.log(result, 'result');
     } else {
       setResult("DRAW");
+      setGameEnded(true)
       console.log(result, 'result');
     }
+  
   }
   
   
-  useEffect(() => {
-    // Call the checkForWinner function when the player's cards state changes
-    checkForWinner();
-  }, [addPlayersCards, addDealersCards]); // Watch for changes in the player's cards state
 
 
+
+  const startGameAgain = () => {
+    // Reset any necessary state variables to start a new game
+    setAddDealersCards([])
+    setAddPlayersCards([])
+    setDealerScore(null)
+    setPlayerScore(null)
+    setResult('')
+    setGameEnded(false)
+  };
+
+  console.log(gameEnded, 'game ended')
 
 
   return (
-    <div className="blackjack-game">
+    <div className={styles.blackjack_game}>
       {/* Render cards */}
+
+      <h3>DEALER</h3>
+      <div className="dealer-score">Dealer Score: {dealerScore}</div>
       <div className="dealer-cards">
       {
     addDealersCards.map((card, index) => (
@@ -254,6 +280,11 @@ const BlackjackGame: React.FC = () => {
       />
     ))}
       </div>
+
+     
+
+     
+
       <div className="player-cards">
         {addPlayersCards.map((card, index) => (
           <Card
@@ -266,15 +297,20 @@ const BlackjackGame: React.FC = () => {
         ))}
       </div>
 
+      <div className="player-score">Player Score: {playerScore}</div>
+      <h3>PLAYER</h3>
+
       {/* Render buttons */}
       <button onClick={dealCards}>Deal</button>
       <button onClick={hit}>Hit</button>
       <button onClick={stand}>Stand</button>
 
       {/* Render scores and result */}
-      <div className="dealer-score">Dealer Score: {dealerScore}</div>
-      <div className="player-score">Player Score: {playerScore}</div>
-      <div className="result">{result}</div>
+    
+    
+      {gameEnded && <div className="result">{result}</div>}
+
+      {gameEnded && <ResultModal result={result} startNewGame={startGameAgain} />}
     </div>
   );
 };
