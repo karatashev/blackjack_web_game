@@ -3,6 +3,7 @@ import Card from "../Card/Card";
 import convertToNum from "../../utils/convertValues"
 import styles from "./Game.module.css"
 import ResultModal from "../Modal/ResultModal";
+import Button from "../Button/Button";
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
@@ -68,8 +69,8 @@ const BlackjackGame: React.FC = () => {
   
     // Check for Blackjack
     if (playerCardsSum === 21) {
-      setResult("BLACKJACK PLAYER WINS");
       flipDealersCard()
+      checkForWinner()
 
     }
   };
@@ -264,53 +265,74 @@ const BlackjackGame: React.FC = () => {
     <div className={styles.blackjack_game}>
       {/* Render cards */}
 
-      <h3>DEALER</h3>
-      <div className="dealer-score">Dealer Score: {dealerScore}</div>
-      <div className="dealer-cards">
-      {
-    addDealersCards.map((card, index) => (
-      <Card
-        key={index}
-        image={index === 0 ? dealerFirstCardSrc : card.image}
-        value={card.value}
-        isDealer={true}
-        isFirst={index === 0}
-        dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
-
-      />
-    ))}
+      <div className={styles.container}>
+        <h3>DEALER</h3>
+        <div className={styles.score}>{dealerScore}</div>
+        <div className={styles.cards_wrapper}>
+          {addDealersCards.map((card, index) => (
+            <Card
+              key={index}
+              image={index === 0 ? dealerFirstCardSrc : card.image}
+              value={card.value}
+              isDealer={true}
+              isFirst={index === 0}
+              dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+            />
+          ))}
+        </div>
       </div>
 
-     
+      {gameEnded && (
+        <ResultModal result={result} startNewGame={startGameAgain} />
+      )}
 
-     
+      <div className={styles.container}>
+        <div className={styles.cards_wrapper}>
+          {addPlayersCards.map((card, index) => (
+            <Card
+              key={index}
+              image={card.image}
+              value={card.value}
+              isDealer={false}
+              isFirst={index === 0}
+              dealerFirstCardSrc={""} // Pass dealerFirstCardSrc as a prop
+            />
+          ))}
+        </div>
 
-      <div className="player-cards">
-        {addPlayersCards.map((card, index) => (
-          <Card
-            key={index}
-            image={card.image}
-            value={card.value}
-            isDealer={false}
-            isFirst={index === 0}
-          />
-        ))}
+        <div className={styles.score}>{playerScore}</div>
+        <h3>PLAYER</h3>
       </div>
-
-      <div className="player-score">Player Score: {playerScore}</div>
-      <h3>PLAYER</h3>
 
       {/* Render buttons */}
-      <button onClick={dealCards}>Deal</button>
-      <button onClick={hit}>Hit</button>
-      <button onClick={stand}>Stand</button>
+      <div className={styles.buttons_container}>
+        <Button 
+          className={styles.deal_cards_button}
+          onClick={dealCards}
+          text="Deal"
+          disabled={false}
+        />
+          <Button 
+          className={styles.hit_button}
+          onClick={hit}
+          text="Hit"
+          disabled={false}
+        />
+            <Button 
+          className={styles.stand_button}
+          onClick={stand}
+          text="Stand"
+          disabled={false}
+        />
+      </div>
 
       {/* Render scores and result */}
-    
-    
-      {gameEnded && <div className="result">{result}</div>}
 
-      {gameEnded && <ResultModal result={result} startNewGame={startGameAgain} />}
+      {/* {gameEnded && <div className="result">{result}</div>} */}
+
+      {/* {gameEnded && (
+        <ResultModal result={result} startNewGame={startGameAgain} />
+      )} */}
     </div>
   );
 };
