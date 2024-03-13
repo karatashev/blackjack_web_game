@@ -96,6 +96,7 @@ const BlackjackGame: React.FC = () => {
       // Calculate and set sum of dealer's cards
       const dealerCardsSum = sumCards(addDealersCards);
       setDealerScore(dealerCardsSum);
+      console.log(dealerCardsSum, 'dealers first two cards sum')
     }
             // Check for Blackjack
             if (dealerCardsSum === 21) {
@@ -104,6 +105,7 @@ const BlackjackGame: React.FC = () => {
 
   };
   
+  console.log(dealerScore, 'DEALERS SCORE <=========')
             
 
 
@@ -135,31 +137,67 @@ const BlackjackGame: React.FC = () => {
     }
   };
 
- 
+
+
   const stand = async () => {
     // Flip the dealer's first card
     flipDealersCard();
   
-    // Draw a new card for the dealer
-    const newDealerCard = await getCard();
-    setAddDealersCards(prevCards => [...prevCards, newDealerCard]);
+    // Recalculate dealer score
+    const updatedDealerCards = [...addDealersCards];
+    let dealerCardsSum = sumCards(updatedDealerCards);
   
-    // Calculate the sum of all dealer's cards including the newly drawn card
-    const updatedDealerCards = [...addDealersCards, newDealerCard];
-    const dealerCardsSum = sumCards(updatedDealerCards);
-  
-    // Update the dealer's score
-    setDealerScore(dealerCardsSum);
-  
-    console.log(dealerScore, "first two cards");
-  
-    // Check for winner
-    if (dealerCardsSum < 17) {
-      stand(); // Draw another card if the dealer's score is less than 17
+    // If the dealer's score is already 17 or higher, check for winner
+    if (dealerCardsSum >= 17) {
+      checkForWinner();
     } else {
-      checkForWinner(); // Check for winner if the dealer's score is 17 or higher
+      // Keep drawing cards for the dealer until their total sum is 17 or higher
+      while (dealerCardsSum < 17) {
+        const newDealerCard = await getCard();
+        updatedDealerCards.push(newDealerCard);
+        
+        // Calculate the sum of all dealer's cards including the newly drawn card
+        dealerCardsSum = sumCards(updatedDealerCards);
+        
+        // Update the dealer's score
+        setAddDealersCards(updatedDealerCards);
+        setDealerScore(dealerCardsSum);
+      }
+  
+      // Check for winner after the dealer stops drawing cards
+      checkForWinner();
     }
   };
+  
+
+
+
+
+ 
+  // const stand = async () => {
+  //   // Flip the dealer's first card
+  //   flipDealersCard();
+  
+  //   // Draw a new card for the dealer
+  //   const newDealerCard = await getCard();
+  //   setAddDealersCards(prevCards => [...prevCards, newDealerCard]);
+  
+  //   // Calculate the sum of all dealer's cards including the newly drawn card
+  //   const updatedDealerCards = [...addDealersCards, newDealerCard];
+  //   const dealerCardsSum = sumCards(updatedDealerCards);
+  
+  //   // Update the dealer's score
+  //   setDealerScore(dealerCardsSum);
+  
+  //   console.log(dealerScore, "first two cards");
+  
+  //   // Check for winner
+  //   if (dealerCardsSum < 17) {
+  //     stand(); // Draw another card if the dealer's score is less than 17
+  //   } else {
+  //     checkForWinner(); // Check for winner if the dealer's score is 17 or higher
+  //   }
+  // };
   
 
   
@@ -212,44 +250,43 @@ const BlackjackGame: React.FC = () => {
 
 
   function checkForWinner() {
-      // Calculate player score
-  const playerScore = sumCards(addPlayersCards);
-  
-  // Calculate dealer score
-  const dealerScore = sumCards(addDealersCards);
-  console.log(playerScore, 'final players score')
-  console.log(dealerScore, 'final dealers score')
+    // Calculate player score
+    const playerScore = sumCards(addPlayersCards);
 
+    // Calculate dealer score
+    const dealerScore = sumCards(addDealersCards);
+    console.log(playerScore, "final players score");
+    console.log(dealerScore, "final dealers score");
 
-    if (playerScore > dealerScore && playerScore <= 21) {
-      setResult("PLAYER WINS");
-      setGameEnded(true)
+    if (playerScore === 21 && dealerScore < 21) {
+      setResult("BLACKJACK PLAYER WINS");
+      setGameEnded(true);
+      console.log(result, "result");
     } else if (dealerScore > 21 && playerScore <= 21) {
       setResult("PLAYER WINS");
-      setGameEnded(true)
-      console.log(result, 'result');
-    } else if (playerScore === 21 && dealerScore < 21) {
-      setResult("BLACKJACK PLAYER WINS");
-      setGameEnded(true)
-      console.log(result, 'result');
+      setGameEnded(true);
+      console.log(result, "result");
+    } else if (playerScore > dealerScore && playerScore <= 21) {
+      setResult("PLAYER WINS");
+      setGameEnded(true);
+      console.log(result, "result");
     } else if (dealerScore > playerScore && dealerScore <= 21) {
       setResult("DEALER WINS");
-      setGameEnded(true)
-      console.log(result, 'result');
+      setGameEnded(true);
+      console.log(result, "result");
     } else if (playerScore > 21 && dealerScore <= 21) {
       setResult("BUST! DEALER WINS");
-      setGameEnded(true)
-      console.log(result, 'result');
+      setGameEnded(true);
+      console.log(result, "result");
     } else if (dealerScore === 21 && playerScore < 21) {
       setResult("BLACKJACK DEALER WINS");
-      setGameEnded(true)
-      console.log(result, 'result');
+      setGameEnded(true);
+      console.log(result, "result");
     } else {
       setResult("DRAW");
-      setGameEnded(true)
-      console.log(result, 'result');
+      setGameEnded(true);
+      console.log(result, "result");
     }
-  
   }
   
   
