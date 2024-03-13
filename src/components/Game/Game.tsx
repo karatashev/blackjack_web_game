@@ -4,6 +4,8 @@ import convertToNum from "../../utils/convertValues"
 import styles from "./Game.module.css"
 import ResultModal from "../Modal/ResultModal";
 import Button from "../Button/Button";
+import DealRulesModal from "../Modal/DealRulesModal";
+import Loader from "../Loader/Loader";
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
@@ -16,7 +18,8 @@ const BlackjackGame: React.FC = () => {
   const [dealerFirstCardSrc, setDealerFirstCardSrc] = useState("https://opengameart.org/sites/default/files/card%20back%20red.png");
   const [dealerCardsSum, setDealerCardsSum] = useState(0);
   const [gameEnded, setGameEnded] = useState(false);
-
+  const [gameIsStarting, setGameIsStarting] = useState(true)
+  const [loading, setLoading] = useState(false)
 
 
 
@@ -44,6 +47,8 @@ const BlackjackGame: React.FC = () => {
   };
 
   const dealCards = async () => {
+    setLoading(true)
+    setGameIsStarting(false)
     const playerCardOne = await getCard();
     const dealerCardOne = await getCard();
     const playerCardTwo = await getCard();
@@ -66,6 +71,8 @@ const BlackjackGame: React.FC = () => {
     // Calculate and set player score
     const playerCardsSum = sumCards([playerCardOne, playerCardTwo]);
     setPlayerScore(playerCardsSum);
+
+    
   
     // Check for Blackjack
     if (playerCardsSum === 21) {
@@ -73,6 +80,7 @@ const BlackjackGame: React.FC = () => {
       checkForWinner()
 
     }
+    setLoading(false)
   };
 
 
@@ -127,6 +135,7 @@ const BlackjackGame: React.FC = () => {
     }
   };
 
+ 
   const stand = async () => {
     // Flip the dealer's first card
     flipDealersCard();
@@ -142,7 +151,7 @@ const BlackjackGame: React.FC = () => {
     // Update the dealer's score
     setDealerScore(dealerCardsSum);
   
-    console.log(dealerCardsSum, "dealers score in stand");
+    console.log(dealerScore, "first two cards");
   
     // Check for winner
     if (dealerCardsSum < 17) {
@@ -215,7 +224,6 @@ const BlackjackGame: React.FC = () => {
     if (playerScore > dealerScore && playerScore <= 21) {
       setResult("PLAYER WINS");
       setGameEnded(true)
-
     } else if (dealerScore > 21 && playerScore <= 21) {
       setResult("PLAYER WINS");
       setGameEnded(true)
@@ -256,84 +264,98 @@ const BlackjackGame: React.FC = () => {
     setPlayerScore(null)
     setResult('')
     setGameEnded(false)
+    dealCards()
   };
 
   console.log(gameEnded, 'game ended')
 
 
   return (
-    <div className={styles.blackjack_game}>
-      {/* Render cards */}
+    <>
+      {gameIsStarting ? (
+        <DealRulesModal dealCards={dealCards} />
+      ) : (
+        <div className={styles.blackjack_game}>
+          {/* Render cards */}
 
-      <div className={styles.container}>
-        <h3>DEALER</h3>
-        <div className={styles.score}>{dealerScore}</div>
-        <div className={styles.cards_wrapper}>
-          {addDealersCards.map((card, index) => (
-            <Card
-              key={index}
-              image={index === 0 ? dealerFirstCardSrc : card.image}
-              value={card.value}
-              isDealer={true}
-              isFirst={index === 0}
-              dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
-            />
-          ))}
+          {loading ? (
+            <Loader />
+          ) : (
+            <>
+          <div className={styles.container}>
+            <h3>DEALER</h3>
+            <div className={styles.score}>{dealerScore}</div>
+            <div className={styles.cards_wrapper}>
+              {addDealersCards.map((card, index) => (
+                <Card
+                  key={index}
+                  image={index === 0 ? dealerFirstCardSrc : card.image}
+                  value={card.value}
+                  isDealer={true}
+                  isFirst={index === 0}
+                  dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+                />
+              ))}
+            </div>
+          </div>
+
+          {gameEnded && (
+            <ResultModal result={result} startGameAgain={startGameAgain} />
+          )}
+
+          <div className={styles.container}>
+            <div className={styles.cards_wrapper}>
+              {addPlayersCards.map((card, index) => (
+                <Card
+                  key={index}
+                  image={card.image}
+                  value={card.value}
+                  isDealer={false}
+                  isFirst={index === 0}
+                  dealerFirstCardSrc={""} // Pass dealerFirstCardSrc as a prop
+                />
+              ))}
+            </div>
+
+            <div className={styles.score}>{playerScore}</div>
+            <h3>PLAYER</h3>
+          </div>
+            </>
+          )}
+
+          {/* Render buttons */}
+          <div className={styles.buttons_container}>
+            {gameIsStarting && (
+              <Button
+                className={styles.deal_cards_button}
+                onClick={dealCards}
+                text="Deal"
+                disabled={false}
+              />
+            )}
+
+            {!gameIsStarting && loading ? (
+           null
+            ) : (
+              <>
+              <Button
+                className={styles.hit_button}
+                onClick={hit}
+                text="Hit"
+                disabled={false}
+              />
+              <Button
+                className={styles.stand_button}
+                onClick={stand}
+                text="Stand"
+                disabled={false}
+              />
+            </>
+            )}
+          </div>
         </div>
-      </div>
-
-      {gameEnded && (
-        <ResultModal result={result} startNewGame={startGameAgain} />
       )}
-
-      <div className={styles.container}>
-        <div className={styles.cards_wrapper}>
-          {addPlayersCards.map((card, index) => (
-            <Card
-              key={index}
-              image={card.image}
-              value={card.value}
-              isDealer={false}
-              isFirst={index === 0}
-              dealerFirstCardSrc={""} // Pass dealerFirstCardSrc as a prop
-            />
-          ))}
-        </div>
-
-        <div className={styles.score}>{playerScore}</div>
-        <h3>PLAYER</h3>
-      </div>
-
-      {/* Render buttons */}
-      <div className={styles.buttons_container}>
-        <Button 
-          className={styles.deal_cards_button}
-          onClick={dealCards}
-          text="Deal"
-          disabled={false}
-        />
-          <Button 
-          className={styles.hit_button}
-          onClick={hit}
-          text="Hit"
-          disabled={false}
-        />
-            <Button 
-          className={styles.stand_button}
-          onClick={stand}
-          text="Stand"
-          disabled={false}
-        />
-      </div>
-
-      {/* Render scores and result */}
-
-      {/* {gameEnded && <div className="result">{result}</div>} */}
-
-      {/* {gameEnded && (
-        <ResultModal result={result} startNewGame={startGameAgain} />
-      )} */}
-    </div>
+    </>
   );
 };
 

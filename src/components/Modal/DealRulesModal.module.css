@@ -1,0 +1,28 @@
+.box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background-color: rgb(9, 81, 9);
+  color: antiquewhite;
+  box-shadow: 24px;
+  padding: 10px;
+  outline: 0;
+  border-radius: 10px;
+}
+
+.rules_container {
+  font-size: 12px;
+
+}
+
+@media screen and (min-width: 1200px) {
+  .box {
+    width: 600px;
+  }
+
+  .rules_container {
+    font-size: 16px;
+  }
+}
