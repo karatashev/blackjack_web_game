@@ -3,6 +3,7 @@ import styles from './Button.module.css'; // Import your CSS module
 
 interface ButtonProps {
   className?: string;
+  icon?: React.ReactNode;
   text: string;
   disabled?: boolean;
   onClick: () => void;
@@ -11,6 +12,7 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({
   className = '',
   text,
+  icon,
   disabled = false,
   onClick,
 }) => {
@@ -20,6 +22,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       onClick={onClick}
     >
+      {icon && <span className={styles.icon}>{icon}</span>}
       {text}
     </button>
   );

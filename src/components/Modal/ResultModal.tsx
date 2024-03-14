@@ -1,33 +1,25 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import Button from '../Button/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
+import styles from "./ResultModal.module.css"
 
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: 2,
-  borderRadius: 2,
-};
 
-export default function ResultModal({result, startGameAgain}) {
-  const [open, setOpen] = React.useState(true);
+export default function ResultModal({result, startGameAgain, playerScore, dealerScore}) {
+  const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   return (
     <div>
       <div>
-      <h5>{result}</h5>
-      <Button onClick={handleOpen}>
-        Start a new game 
-      </Button>
+      <h3 className={styles.result}>{result}</h3>
+      <Button
+            text="New game"
+            onClick={handleOpen}
+            className={styles.new_game_button}
+          />
       </div>
 
       <Modal
@@ -36,12 +28,17 @@ export default function ResultModal({result, startGameAgain}) {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style}>
+        <Box className={styles.box}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
+            <p>Dealer had: {dealerScore}</p>
+            <p>Player had: {playerScore}</p>
             <p>{result}</p>
-            <p>Click to start a new game</p>
           </Typography>
-          <Button onClick={startGameAgain}>DEAL AGAIN</Button>
+          <Button
+            text="Start again"
+            onClick={startGameAgain}
+            className={styles.start_again_button}
+          />
 
         </Box>
       </Modal>

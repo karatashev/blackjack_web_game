@@ -13,6 +13,51 @@
   align-items: center;
 }
 
+
+.box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 350px;
+    background-color: rgb(8, 110, 8);
+    color: antiquewhite;
+    box-shadow: 24px;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+
+.start_again_button {
+  margin-top: 15px;
+  font-weight: 600;
+  background-color: #3686d5;
+  color: white;
+}
+
+.start_again_button:hover {
+  transform: scale(1.05);
+
+}
+
+.result{
+  color: white;
+}
+
+.new_game_button {
+  padding: 7px 20px;
+  margin-top: 5px;
+  font-size: 16px;
+  background-color: #3686d5;
+  color: white;
+  font-weight: 600;
+}
+
+.new_game_button:hover {
+  transform: scale(1.05);
+
+}
+
 .hide {
   display: none;
 }

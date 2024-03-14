@@ -5,17 +5,7 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import styles from "./DealRulesModal.module.css"
 
-// const style = {
-//   position: 'absolute' as 'absolute',
-//   top: '50%',
-//   left: '50%',
-//   transform: 'translate(-50%, -50%)',
-//   width: 600,
-//   bgcolor: 'background.paper',
-//   boxShadow: 24,
-//   p: 4,
-//   outline: 0,
-// };
+
 
 export default function DealRulesModal({dealCards}) {
   const [open, setOpen] = React.useState(false);
@@ -24,6 +14,12 @@ export default function DealRulesModal({dealCards}) {
 
   return (
     <div>
+      <h2>BLACKJACK</h2>
+            <Button
+        text="START GAME"
+        onClick={handleOpen}
+        className={styles.start_game_button}
+      />
       <Modal
         open={open}
         onClose={handleClose}
@@ -53,7 +49,7 @@ export default function DealRulesModal({dealCards}) {
             </div>
           </Typography>
           <Button
-            text="DEAL CARDS"
+            text="Deal cards"
             onClick={dealCards}
             className={styles.deal_cards_button}
           />
@@ -62,11 +58,7 @@ export default function DealRulesModal({dealCards}) {
           </Typography> */}
         </Box>
       </Modal>
-      <Button
-        text="START GAME"
-        onClick={handleOpen}
-        className={styles.start_game_button}
-      />
+
     </div>
   );
 }

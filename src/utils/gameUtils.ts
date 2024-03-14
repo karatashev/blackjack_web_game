@@ -12,4 +12,5 @@
     }
   }
   
-  export default convertToNum
+export default convertToNum
+

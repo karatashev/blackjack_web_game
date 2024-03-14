@@ -17,10 +17,26 @@
 }
 
 .start_game_button {
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  font-weight: 600;
+  background-color: #3686d5;
+  color: white;
+  padding: 15px 45px;
+}
+
+.deal_cards_button {
+  margin: 15px;
+  font-size: 24px;
+  font-weight: 600;
+  background-color: #3686d5;
+  color: white;
+}
+
+.deal_cards_button:hover {
+  transform: scale(1.05);
 }
 
 @media screen and (min-width: 1200px) {

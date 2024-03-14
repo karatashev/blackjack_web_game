@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import Card from "../Card/Card";
-import convertToNum from "../../utils/convertValues"
+import convertToNum from "../../utils/gameUtils"
 import styles from "./Game.module.css"
 import ResultModal from "../Modal/ResultModal";
 import Button from "../Button/Button";
 import DealRulesModal from "../Modal/DealRulesModal";
 import Loader from "../Loader/Loader";
+import { FaHandPaper } from "react-icons/fa";
+import { MdPersonAddAlt1 } from "react-icons/md";
+
+
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
@@ -100,7 +104,7 @@ const BlackjackGame: React.FC = () => {
     }
             // Check for Blackjack
             if (dealerCardsSum === 21) {
-              setResult("BLACKJACK DEALER WINS");
+              checkForWinner()
             }
 
   };
@@ -132,8 +136,8 @@ const BlackjackGame: React.FC = () => {
   
     // Check for Bust
     if (playerCardsSum >= 21) {
-      checkForWinner();
       flipDealersCard()
+      checkForWinner();
     }
   };
 
@@ -168,44 +172,7 @@ const BlackjackGame: React.FC = () => {
       checkForWinner();
     }
   };
-  
-
-
-
-
- 
-  // const stand = async () => {
-  //   // Flip the dealer's first card
-  //   flipDealersCard();
-  
-  //   // Draw a new card for the dealer
-  //   const newDealerCard = await getCard();
-  //   setAddDealersCards(prevCards => [...prevCards, newDealerCard]);
-  
-  //   // Calculate the sum of all dealer's cards including the newly drawn card
-  //   const updatedDealerCards = [...addDealersCards, newDealerCard];
-  //   const dealerCardsSum = sumCards(updatedDealerCards);
-  
-  //   // Update the dealer's score
-  //   setDealerScore(dealerCardsSum);
-  
-  //   console.log(dealerScore, "first two cards");
-  
-  //   // Check for winner
-  //   if (dealerCardsSum < 17) {
-  //     stand(); // Draw another card if the dealer's score is less than 17
-  //   } else {
-  //     checkForWinner(); // Check for winner if the dealer's score is 17 or higher
-  //   }
-  // };
-  
-
-  
-  
-  
-  
-
-  
+    
   
   
 
@@ -243,51 +210,53 @@ const BlackjackGame: React.FC = () => {
     // Call the checkForWinner function when the player's cards state changes
     if (gameEnded) {
       checkForWinner();
-      console.log(gameEnded, 'game ended')
     }
   }, [addPlayersCards, addDealersCards, gameEnded]); // Watch for changes in the player's cards state
 
 
 
+
   function checkForWinner() {
     // Calculate player score
+  
     const playerScore = sumCards(addPlayersCards);
-
+  
     // Calculate dealer score
     const dealerScore = sumCards(addDealersCards);
     console.log(playerScore, "final players score");
     console.log(dealerScore, "final dealers score");
-
-    if (playerScore === 21 && dealerScore < 21) {
-      setResult("BLACKJACK PLAYER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else if (dealerScore > 21 && playerScore <= 21) {
-      setResult("PLAYER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else if (playerScore > dealerScore && playerScore <= 21) {
-      setResult("PLAYER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else if (dealerScore > playerScore && dealerScore <= 21) {
-      setResult("DEALER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else if (playerScore > 21 && dealerScore <= 21) {
-      setResult("BUST! DEALER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else if (dealerScore === 21 && playerScore < 21) {
-      setResult("BLACKJACK DEALER WINS");
-      setGameEnded(true);
-      console.log(result, "result");
-    } else {
-      setResult("DRAW");
-      setGameEnded(true);
-      console.log(result, "result");
-    }
+  
+      if (playerScore === 21 && dealerScore < 21) {
+        setGameEnded(true);
+        setResult("BLACKJACK PLAYER WINS");
+        console.log(result, "result");
+      } else if (dealerScore > 21 && playerScore <= 21) {
+        setGameEnded(true);
+        setResult("PLAYER WINS");
+        console.log(result, "result");
+      } else if (playerScore > dealerScore && playerScore <= 21) {
+        setGameEnded(true);
+        setResult("PLAYER WINS");
+        console.log(result, "result");
+      } else if (dealerScore > playerScore && dealerScore <= 21) {
+        setGameEnded(true);
+        setResult("DEALER WINS");
+        console.log(result, "result");
+      } else if (playerScore > 21 && dealerScore <= 21) {
+        setGameEnded(true);
+        setResult("BUST! DEALER WINS");
+        console.log(result, "result");
+      } else if (dealerScore === 21 && playerScore < 21) {
+        setGameEnded(true);
+        setResult("BLACKJACK DEALER WINS");
+        console.log(result, "result");
+      } else {
+        setGameEnded(true);
+        setResult("DRAW");
+        console.log(result, "result");
+      }
   }
+  
   
   
 
@@ -318,7 +287,7 @@ const BlackjackGame: React.FC = () => {
           {loading ? (
             <Loader />
           ) : (
-            <>
+            <div className={styles.both_sides_container}>
           <div className={styles.container}>
             <h3>DEALER</h3>
             <div className={styles.score}>{dealerScore}</div>
@@ -337,7 +306,7 @@ const BlackjackGame: React.FC = () => {
           </div>
 
           {gameEnded && (
-            <ResultModal result={result} startGameAgain={startGameAgain} />
+            <ResultModal result={result} startGameAgain={startGameAgain} dealerScore={dealerScore} playerScore={playerScore}/>
           )}
 
           <div className={styles.container}>
@@ -357,7 +326,7 @@ const BlackjackGame: React.FC = () => {
             <div className={styles.score}>{playerScore}</div>
             <h3>PLAYER</h3>
           </div>
-            </>
+          </div>
           )}
 
           {/* Render buttons */}
@@ -378,14 +347,16 @@ const BlackjackGame: React.FC = () => {
               <Button
                 className={styles.hit_button}
                 onClick={hit}
+                icon={<MdPersonAddAlt1/>}
                 text="Hit"
-                disabled={false}
+                disabled={gameEnded}
               />
               <Button
                 className={styles.stand_button}
                 onClick={stand}
                 text="Stand"
-                disabled={false}
+                icon={<FaHandPaper/>}
+                disabled={gameEnded}
               />
             </>
             )}
