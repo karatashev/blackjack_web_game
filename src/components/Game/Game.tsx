@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Card from "../Card/Card";
-import convertToNum from "../../utils/gameUtils"
+import convertToNum from "../../utils/convertValues"
 import styles from "./Game.module.css"
 import ResultModal from "../Modal/ResultModal";
 import Button from "../Button/Button";
@@ -8,19 +8,20 @@ import DealRulesModal from "../Modal/DealRulesModal";
 import Loader from "../Loader/Loader";
 import { FaHandPaper } from "react-icons/fa";
 import { MdPersonAddAlt1 } from "react-icons/md";
+import { checkForWinner } from "../../utils/checkForWinner";
+import { CardFace } from "../../../types"
 
 
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
   const [deckId, setDeckId] = useState('');
-  const [addPlayersCards, setAddPlayersCards] = useState([]);
-  const [addDealersCards, setAddDealersCards] = useState([]);
-  const [dealerScore, setDealerScore] = useState(null);
-  const [playerScore, setPlayerScore] = useState(null);
+  const [addPlayersCards, setAddPlayersCards] = useState<CardFace[]>([]);
+  const [addDealersCards, setAddDealersCards] = useState<CardFace[]>([]);
+  const [dealerScore, setDealerScore] = useState<number>(0); // Set initial state to be a number
+  const [playerScore, setPlayerScore] = useState<number>(0);
   const [result, setResult] = useState('');
   const [dealerFirstCardSrc, setDealerFirstCardSrc] = useState("https://opengameart.org/sites/default/files/card%20back%20red.png");
-  const [dealerCardsSum, setDealerCardsSum] = useState(0);
   const [gameEnded, setGameEnded] = useState(false);
   const [gameIsStarting, setGameIsStarting] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -81,7 +82,7 @@ const BlackjackGame: React.FC = () => {
     // Check for Blackjack
     if (playerCardsSum === 21) {
       flipDealersCard()
-      checkForWinner()
+      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards)
 
     }
     setLoading(false)
@@ -103,8 +104,8 @@ const BlackjackGame: React.FC = () => {
       console.log(dealerCardsSum, 'dealers first two cards sum')
     }
             // Check for Blackjack
-            if (dealerCardsSum === 21) {
-              checkForWinner()
+            if (dealerScore === 21) {
+              checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards)
             }
 
   };
@@ -137,7 +138,7 @@ const BlackjackGame: React.FC = () => {
     // Check for Bust
     if (playerCardsSum >= 21) {
       flipDealersCard()
-      checkForWinner();
+      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
     }
   };
 
@@ -153,11 +154,11 @@ const BlackjackGame: React.FC = () => {
   
     // If the dealer's score is already 17 or higher, check for winner
     if (dealerCardsSum >= 17) {
-      checkForWinner();
+      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
     } else {
       // Keep drawing cards for the dealer until their total sum is 17 or higher
       while (dealerCardsSum < 17) {
-        const newDealerCard = await getCard();
+        const newDealerCard: CardFace = await getCard();
         updatedDealerCards.push(newDealerCard);
         
         // Calculate the sum of all dealer's cards including the newly drawn card
@@ -169,7 +170,7 @@ const BlackjackGame: React.FC = () => {
       }
   
       // Check for winner after the dealer stops drawing cards
-      checkForWinner();
+      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
     }
   };
     
@@ -180,7 +181,7 @@ const BlackjackGame: React.FC = () => {
   //We sort the cards in descending order (b - a). This is important because we want to check for the ace value before any other card value.
   //We iterate over the sorted cards and apply the same logic as before, dynamically choosing the ace value to avoid busting.
   //This way, the ace value is chosen intelligently, just like in your previous JavaScript code.
-  function sumCards(cards) {
+  function sumCards(cards: CardFace[]): number {
     let hasAce = false;
     let sum = cards
       .map(card => convertToNum(card.value))
@@ -196,69 +197,19 @@ const BlackjackGame: React.FC = () => {
     if (hasAce && sum > 21) {
       sum -= 10;
     }
-
-    // if (hasAce && sum === 21) {
-    //   return sum;
-    // }
   
     return sum;
   }
   
   
   
+  
   useEffect(() => {
     // Call the checkForWinner function when the player's cards state changes
     if (gameEnded) {
-      checkForWinner();
+      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
     }
   }, [addPlayersCards, addDealersCards, gameEnded]); // Watch for changes in the player's cards state
-
-
-
-
-  function checkForWinner() {
-    // Calculate player score
-  
-    const playerScore = sumCards(addPlayersCards);
-  
-    // Calculate dealer score
-    const dealerScore = sumCards(addDealersCards);
-    console.log(playerScore, "final players score");
-    console.log(dealerScore, "final dealers score");
-  
-      if (playerScore === 21 && dealerScore < 21) {
-        setGameEnded(true);
-        setResult("BLACKJACK PLAYER WINS");
-        console.log(result, "result");
-      } else if (dealerScore > 21 && playerScore <= 21) {
-        setGameEnded(true);
-        setResult("PLAYER WINS");
-        console.log(result, "result");
-      } else if (playerScore > dealerScore && playerScore <= 21) {
-        setGameEnded(true);
-        setResult("PLAYER WINS");
-        console.log(result, "result");
-      } else if (dealerScore > playerScore && dealerScore <= 21) {
-        setGameEnded(true);
-        setResult("DEALER WINS");
-        console.log(result, "result");
-      } else if (playerScore > 21 && dealerScore <= 21) {
-        setGameEnded(true);
-        setResult("BUST! DEALER WINS");
-        console.log(result, "result");
-      } else if (dealerScore === 21 && playerScore < 21) {
-        setGameEnded(true);
-        setResult("BLACKJACK DEALER WINS");
-        console.log(result, "result");
-      } else {
-        setGameEnded(true);
-        setResult("DRAW");
-        console.log(result, "result");
-      }
-  }
-  
-  
-  
 
 
 
@@ -266,8 +217,8 @@ const BlackjackGame: React.FC = () => {
     // Reset any necessary state variables to start a new game
     setAddDealersCards([])
     setAddPlayersCards([])
-    setDealerScore(null)
-    setPlayerScore(null)
+    setDealerScore(0)
+    setPlayerScore(0)
     setResult('')
     setGameEnded(false)
     dealCards()
@@ -288,45 +239,50 @@ const BlackjackGame: React.FC = () => {
             <Loader />
           ) : (
             <div className={styles.both_sides_container}>
-          <div className={styles.container}>
-            <h3>DEALER</h3>
-            <div className={styles.score}>{dealerScore}</div>
-            <div className={styles.cards_wrapper}>
-              {addDealersCards.map((card, index) => (
-                <Card
-                  key={index}
-                  image={index === 0 ? dealerFirstCardSrc : card.image}
-                  value={card.value}
-                  isDealer={true}
-                  isFirst={index === 0}
-                  dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+              <div className={styles.container}>
+                <h3>DEALER</h3>
+                <div className={styles.score}>{dealerScore}</div>
+                <div className={styles.cards_wrapper}>
+                  {addDealersCards.map((card: CardFace, index) => (
+                    <Card
+                      key={index}
+                      image={index === 0 ? dealerFirstCardSrc : card.image}
+                      value={card.value}
+                      isDealer={true}
+                      isFirst={index === 0}
+                      dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {gameEnded && (
+                <ResultModal
+                  result={result}
+                  startGameAgain={startGameAgain}
+                  dealerScore={dealerScore}
+                  playerScore={playerScore}
                 />
-              ))}
+              )}
+
+              <div className={styles.container}>
+                <div className={styles.cards_wrapper}>
+                  {addPlayersCards.map((card: CardFace, index) => (
+                    <Card
+                      key={index}
+                      image={card.image}
+                      value={card.value}
+                      isDealer={false}
+                      isFirst={index === 0}
+                      dealerFirstCardSrc={""} // Pass dealerFirstCardSrc as a prop
+                    />
+                  ))}
+                </div>
+
+                <div className={styles.score}>{playerScore}</div>
+                <h3>PLAYER</h3>
+              </div>
             </div>
-          </div>
-
-          {gameEnded && (
-            <ResultModal result={result} startGameAgain={startGameAgain} dealerScore={dealerScore} playerScore={playerScore}/>
-          )}
-
-          <div className={styles.container}>
-            <div className={styles.cards_wrapper}>
-              {addPlayersCards.map((card, index) => (
-                <Card
-                  key={index}
-                  image={card.image}
-                  value={card.value}
-                  isDealer={false}
-                  isFirst={index === 0}
-                  dealerFirstCardSrc={""} // Pass dealerFirstCardSrc as a prop
-                />
-              ))}
-            </div>
-
-            <div className={styles.score}>{playerScore}</div>
-            <h3>PLAYER</h3>
-          </div>
-          </div>
           )}
 
           {/* Render buttons */}
@@ -340,25 +296,23 @@ const BlackjackGame: React.FC = () => {
               />
             )}
 
-            {!gameIsStarting && loading ? (
-           null
-            ) : (
+            {!gameIsStarting && loading ? null : (
               <>
-              <Button
-                className={styles.hit_button}
-                onClick={hit}
-                icon={<MdPersonAddAlt1/>}
-                text="Hit"
-                disabled={gameEnded}
-              />
-              <Button
-                className={styles.stand_button}
-                onClick={stand}
-                text="Stand"
-                icon={<FaHandPaper/>}
-                disabled={gameEnded}
-              />
-            </>
+                <Button
+                  className={styles.hit_button}
+                  onClick={hit}
+                  icon={<MdPersonAddAlt1 />}
+                  text="Hit"
+                  disabled={gameEnded}
+                />
+                <Button
+                  className={styles.stand_button}
+                  onClick={stand}
+                  text="Stand"
+                  icon={<FaHandPaper />}
+                  disabled={gameEnded}
+                />
+              </>
             )}
           </div>
         </div>
