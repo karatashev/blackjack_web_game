@@ -1,5 +1,7 @@
 
 import styles from "./Card.module.css"
+import 'animate.css';
+
 
 interface CardProps {
   image: string;
@@ -11,7 +13,7 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ image, value, isDealer, isFirst, dealerFirstCardSrc }) => {
   return (
-    <img className={styles.card} src={isDealer && isFirst ? dealerFirstCardSrc : image} alt={value} />
+    <img className={`${styles.card} animate__animated animate__backInRight animate__delay-2s}`} src={isDealer && isFirst ? dealerFirstCardSrc : image} alt={value} />
   );
 };
 
