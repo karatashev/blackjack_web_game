@@ -6,7 +6,14 @@ import Modal from '@mui/material/Modal';
 import styles from "./ResultModal.module.css"
 
 
-export default function ResultModal({result, startGameAgain, playerScore, dealerScore}) {
+interface ResultModalProps {
+  result: string;
+  startGameAgain: () => void;
+  playerScore: number;
+  dealerScore: number;
+}
+
+export default function ResultModal({result, startGameAgain, playerScore, dealerScore} : ResultModalProps) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);

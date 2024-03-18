@@ -5,9 +5,11 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import styles from "./DealRulesModal.module.css"
 
+interface DealRulesProps {
+  dealCards: () => void;
+}
 
-
-export default function DealRulesModal({dealCards}) {
+export default function DealRulesModal({ dealCards }: DealRulesProps) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
