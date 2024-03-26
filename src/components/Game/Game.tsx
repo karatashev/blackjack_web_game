@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import Card from "../Card/Card";
 import convertToNum from "../../utils/convertValues"
 import styles from "./Game.module.css"
@@ -10,21 +10,20 @@ import { FaHandPaper } from "react-icons/fa";
 import { MdPersonAddAlt1 } from "react-icons/md";
 import { checkForWinner } from "../../utils/checkForWinner";
 import { CardFace } from "../../../types"
+import reducer from "../../utils/reducer/reducer"
+import { initialState } from "../../utils/reducer/reducer";
+import { ADD_DEALERS_CARDS, ADD_PLAYERS_CARDS, SET_DEALER_FIRST_CARD_SRC, SET_DEALER_SCORE, SET_DECK_ID, SET_PLAYER_SCORE, SET_RESULT } from "../../utils/reducer/ActionTypes";
 
 
 
 // BlackjackGame Component
 const BlackjackGame: React.FC = () => {
-  const [deckId, setDeckId] = useState('');
-  const [addPlayersCards, setAddPlayersCards] = useState<CardFace[]>([]);
-  const [addDealersCards, setAddDealersCards] = useState<CardFace[]>([]);
-  const [dealerScore, setDealerScore] = useState<number>(0); // Set initial state to be a number
-  const [playerScore, setPlayerScore] = useState<number>(0);
-  const [result, setResult] = useState('');
-  const [dealerFirstCardSrc, setDealerFirstCardSrc] = useState("https://opengameart.org/sites/default/files/card%20back%20red.png");
+  // const [result, setResult] = useState('');
   const [gameEnded, setGameEnded] = useState(false);
   const [gameIsStarting, setGameIsStarting] = useState(true)
   const [loading, setLoading] = useState(false)
+
+  const [state, dispatch] = useReducer(reducer, initialState);
 
 
 
@@ -33,7 +32,8 @@ const BlackjackGame: React.FC = () => {
       try {
         const res = await fetch("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=2");
         const data = await res.json();
-        setDeckId(data.deck_id);
+        dispatch({ type: SET_DECK_ID, payload: data.deck_id })
+        // setDeckId(data.deck_id);
       } catch (err) {
         console.log(err);
       }
@@ -43,13 +43,19 @@ const BlackjackGame: React.FC = () => {
 
   const getCard = async () => {
     try {
-      const res = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+      if (!state.deckId) {
+        console.log('Deck ID is not available');
+        return null;
+      }
+  
+      const res = await fetch(`https://deckofcardsapi.com/api/deck/${state.deckId}/draw/?count=1`);
       const data = await res.json();
       return data.cards[0];
     } catch (err) {
       console.log(err);
     }
   };
+  
 
   const dealCards = async () => {
     setLoading(true)
@@ -61,28 +67,34 @@ const BlackjackGame: React.FC = () => {
     
   
      // Set dealer's first card to back of card image
-     setDealerFirstCardSrc("https://opengameart.org/sites/default/files/card%20back%20red.png");
+    //  setDealerFirstCardSrc("https://opengameart.org/sites/default/files/card%20back%20red.png");
+    dispatch({ type: SET_DEALER_FIRST_CARD_SRC, payload: initialState.dealerFirstCardSrc})
 
-    setAddDealersCards(prevCards => [...prevCards, dealerCardOne, dealerCardTwo]);
-    setAddPlayersCards(prevCards => [...prevCards, playerCardOne, playerCardTwo]);
+    dispatch({ type: ADD_DEALERS_CARDS, payload: [dealerCardOne, dealerCardTwo]})
+    // setAddDealersCards(prevCards => [...prevCards, dealerCardOne, dealerCardTwo]);
+
+    dispatch({ type: ADD_PLAYERS_CARDS, payload: [playerCardOne, playerCardTwo]})
+    // setAddPlayersCards(prevCards => [...prevCards, playerCardOne, playerCardTwo]);
 
 
     // Calculate and set dealer score (show only second card)
     const dealerSecondCardValue = convertToNum(dealerCardTwo.value);
-    setDealerScore(dealerSecondCardValue);
+    dispatch({ type: SET_DEALER_SCORE, payload: dealerSecondCardValue})
+    // setDealerScore(dealerSecondCardValue);
 
 
   
     // Calculate and set player score
     const playerCardsSum = sumCards([playerCardOne, playerCardTwo]);
-    setPlayerScore(playerCardsSum);
+    // setPlayerScore(playerCardsSum);
+    dispatch({ type: SET_PLAYER_SCORE, payload: playerCardsSum})
 
     
   
     // Check for Blackjack
     if (playerCardsSum === 21) {
       flipDealersCard()
-      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards)
+      checkForWinner(state.addPlayersCards, state.addDealersCards, setGameEnded, dispatch, sumCards)
 
     }
     setLoading(false)
@@ -92,34 +104,41 @@ const BlackjackGame: React.FC = () => {
 
 
   const flipDealersCard = () => {
-    if (addDealersCards && addDealersCards.length > 0) {
-      const firstCardImage = addDealersCards[0].image;
+    if (state.addDealersCards && state.addDealersCards.length > 0) {
+      const firstCardImage = state.addDealersCards[0].image;
       console.log("First card image:", firstCardImage);
-  
-      setDealerFirstCardSrc(firstCardImage);
-    
-      // Calculate and set sum of dealer's cards
-      const dealerCardsSum = sumCards(addDealersCards);
-      setDealerScore(dealerCardsSum);
-      console.log(dealerCardsSum, 'dealers first two cards sum')
-    }
-            // Check for Blackjack
-            if (dealerScore === 21) {
-              checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards)
-            }
 
+      // setDealerFirstCardSrc(firstCardImage);
+      dispatch({ type: SET_DEALER_FIRST_CARD_SRC, payload: firstCardImage });
+
+      // Calculate and set sum of dealer's cards
+      const dealerCardsSum = sumCards(state.addDealersCards);
+      dispatch({ type: SET_DEALER_SCORE, payload: dealerCardsSum})
+      // setDealerScore(dealerCardsSum);
+      console.log(dealerCardsSum, "dealers first two cards sum");
+    }
+    // Check for Blackjack
+    if (state.dealerScore === 21) {
+      checkForWinner(
+        state.addPlayersCards,
+        state.addDealersCards,
+        setGameEnded,
+        dispatch,
+        sumCards
+      );
+    }
   };
   
-  console.log(dealerScore, 'DEALERS SCORE <=========')
+  console.log(state.dealerScore, 'DEALERS SCORE <=========')
             
 
 
 
   
-  console.log(addDealersCards, 'dealers')
-  console.log(addPlayersCards, 'players')
-  console.log(dealerScore, 'DEALER SCORE')
-  console.log(playerScore, 'PLAYER SCORE')
+  console.log(state.addDealersCards, 'dealers')
+  console.log(state.addPlayersCards, 'players')
+  console.log(state.dealerScore, 'DEALER SCORE')
+  console.log(state.playerScore, 'PLAYER SCORE')
 
 
 
@@ -127,18 +146,21 @@ const BlackjackGame: React.FC = () => {
 
   const hit = async () => {
     const newPlayerCard = await getCard();
-    setAddPlayersCards([...addPlayersCards, newPlayerCard]);
+    // setAddPlayersCards([...addPlayersCards, newPlayerCard]);
+    dispatch({ type: ADD_PLAYERS_CARDS, payload: [...state.addPlayersCards, newPlayerCard]})
+
 
     // Calculate and set player score
-    const playerCardsSum = sumCards([...addPlayersCards, newPlayerCard]);
-    setPlayerScore(playerCardsSum);
+    const playerCardsSum = sumCards([...state.addPlayersCards, newPlayerCard]);
+    // setPlayerScore(playerCardsSum);
+    dispatch({ type: SET_PLAYER_SCORE, payload: playerCardsSum})
 
     
   
     // Check for Bust
     if (playerCardsSum >= 21) {
       flipDealersCard()
-      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
+      checkForWinner(state.addPlayersCards, state.addDealersCards, setGameEnded, dispatch, sumCards);
     }
   };
 
@@ -149,12 +171,12 @@ const BlackjackGame: React.FC = () => {
     flipDealersCard();
   
     // Recalculate dealer score
-    const updatedDealerCards = [...addDealersCards];
+    const updatedDealerCards = [...state.addDealersCards];
     let dealerCardsSum = sumCards(updatedDealerCards);
   
     // If the dealer's score is already 17 or higher, check for winner
     if (dealerCardsSum >= 17) {
-      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
+      checkForWinner(state.addPlayersCards, state.addDealersCards, setGameEnded, dispatch, sumCards);
     } else {
       // Keep drawing cards for the dealer until their total sum is 17 or higher
       while (dealerCardsSum < 17) {
@@ -165,12 +187,15 @@ const BlackjackGame: React.FC = () => {
         dealerCardsSum = sumCards(updatedDealerCards);
         
         // Update the dealer's score
-        setAddDealersCards(updatedDealerCards);
-        setDealerScore(dealerCardsSum);
+        dispatch({type: ADD_DEALERS_CARDS, payload: updatedDealerCards})
+        // setAddDealersCards(updatedDealerCards);
+
+        dispatch({ type: SET_DEALER_SCORE, payload: dealerCardsSum})
+        // setDealerScore(dealerCardsSum);
       }
   
       // Check for winner after the dealer stops drawing cards
-      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
+      checkForWinner(state.addPlayersCards, state.addDealersCards, setGameEnded, dispatch, sumCards);
     }
   };
     
@@ -207,19 +232,26 @@ const BlackjackGame: React.FC = () => {
   useEffect(() => {
     // Call the checkForWinner function when the player's cards state changes
     if (gameEnded) {
-      checkForWinner(addPlayersCards, addDealersCards, setGameEnded, setResult, sumCards);
+      checkForWinner(state.addPlayersCards, state.addDealersCards, setGameEnded, dispatch, sumCards);
     }
-  }, [addPlayersCards, addDealersCards, gameEnded]); // Watch for changes in the player's cards state
+  }, [state.addPlayersCards, state.addDealersCards, gameEnded]); // Watch for changes in the player's cards state
 
 
 
   const startGameAgain = () => {
     // Reset any necessary state variables to start a new game
-    setAddDealersCards([])
-    setAddPlayersCards([])
-    setDealerScore(0)
-    setPlayerScore(0)
-    setResult('')
+    dispatch({ type: ADD_DEALERS_CARDS, payload: [] })
+    // setAddDealersCards([])
+
+    // setAddPlayersCards([])
+    dispatch({ type: ADD_PLAYERS_CARDS, payload: [] })
+
+    dispatch({ type: SET_DEALER_SCORE, payload: 0 })
+    // setDealerScore(0)
+    dispatch({ type: SET_PLAYER_SCORE, payload: 0 })
+    // setPlayerScore(0)
+    dispatch({ type: SET_RESULT, payload: initialState.result })
+    // setResult('')
     setGameEnded(false)
     dealCards()
   };
@@ -241,16 +273,16 @@ const BlackjackGame: React.FC = () => {
             <div className={styles.both_sides_container}>
               <div className={styles.container}>
                 <h3>DEALER</h3>
-                <div className={styles.score}>{dealerScore}</div>
+                <div className={styles.score}>{state.dealerScore}</div>
                 <div className={styles.cards_wrapper}>
-                  {addDealersCards.map((card: CardFace, index) => (
+                  {state.addDealersCards.map((card: CardFace, index: any) => (
                     <Card
                       key={index}
-                      image={index === 0 ? dealerFirstCardSrc : card.image}
+                      image={index === 0 ? state.dealerFirstCardSrc : card.image}
                       value={card.value}
                       isDealer={true}
                       isFirst={index === 0}
-                      dealerFirstCardSrc={dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
+                      dealerFirstCardSrc={state.dealerFirstCardSrc} // Pass dealerFirstCardSrc as a prop
                     />
                   ))}
                 </div>
@@ -258,16 +290,16 @@ const BlackjackGame: React.FC = () => {
 
               {gameEnded && (
                 <ResultModal
-                  result={result}
+                  result={state.result}
                   startGameAgain={startGameAgain}
-                  dealerScore={dealerScore}
-                  playerScore={playerScore}
+                  dealerScore={state.dealerScore}
+                  playerScore={state.playerScore}
                 />
               )}
 
               <div className={styles.container}>
                 <div className={styles.cards_wrapper}>
-                  {addPlayersCards.map((card: CardFace, index) => (
+                  {state.addPlayersCards.map((card: CardFace, index: any) => (
                     <Card
                       key={index}
                       image={card.image}
@@ -279,7 +311,7 @@ const BlackjackGame: React.FC = () => {
                   ))}
                 </div>
 
-                <div className={styles.score}>{playerScore}</div>
+                <div className={styles.score}>{state.playerScore}</div>
                 <h3>PLAYER</h3>
               </div>
             </div>

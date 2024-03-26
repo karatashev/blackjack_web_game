@@ -1,12 +1,15 @@
 import { CardFace } from "../../types";
+import { SET_RESULT } from "./reducer/ActionTypes"; // Assuming SET_RESULT is the action type for updating the result
 
 export const checkForWinner = (
   addPlayersCards: CardFace[],
   addDealersCards: CardFace[],
   setGameEnded: (value: boolean) => void,
-  setResult: (value: string) => void,
+  dispatch: (action: { type: string, payload: any }) => void, // Add dispatch function from the reducer
   sumCards: (cards: CardFace[]) => number
 ) => {
+
+  
   // Calculate player score
   const playerScore = sumCards(addPlayersCards);
 
@@ -17,24 +20,24 @@ export const checkForWinner = (
 
   if (playerScore === 21 && dealerScore < 21) {
     setGameEnded(true);
-    setResult("BLACKJACK PLAYER WINS");
+    dispatch({ type: SET_RESULT, payload: "BLACKJACK PLAYER WINS" });
   } else if (dealerScore === 21 && playerScore < 21) {
     setGameEnded(true);
-    setResult("BLACKJACK DEALER WINS");
+    dispatch({ type: SET_RESULT, payload: "BLACKJACK DEALER WINS" });
   } else if (dealerScore > 21 && playerScore <= 21) {
     setGameEnded(true);
-    setResult("PLAYER WINS");
+    dispatch({ type: SET_RESULT, payload: "PLAYER WINS" });
   } else if (playerScore > dealerScore && playerScore <= 21) {
     setGameEnded(true);
-    setResult("PLAYER WINS");
+    dispatch({ type: SET_RESULT, payload: "PLAYER WINS" });
   } else if (dealerScore > playerScore && dealerScore <= 21) {
     setGameEnded(true);
-    setResult("DEALER WINS");
+    dispatch({ type: SET_RESULT, payload: "DEALER WINS" });
   } else if (playerScore > 21 && dealerScore <= 21) {
     setGameEnded(true);
-    setResult("BUST! DEALER WINS");
+    dispatch({ type: SET_RESULT, payload: "BUST! DEALER WINS" });
   } else {
     setGameEnded(true);
-    setResult("DRAW");
+    dispatch({ type: SET_RESULT, payload: "DRAW" });
   }
 };
